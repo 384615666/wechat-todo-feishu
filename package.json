@@ -1,0 +1,24 @@
+{
+  "name": "wechat-todo-feishu",
+  "version": "1.0.0",
+  "description": "微信消息→待办整理→飞书同步（多维表格台账+飞书任务双写，走本机已登录的 lark-cli，免建应用免 MCP）。基于 syskuku/wechat-todo 改造，含 wechat-cli 工具链与两个 skill，即插即用",
+  "bin": {
+    "wechat-todo-feishu": "bin/wechat-todo-feishu.js"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "vendor/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["skill", "wechat", "feishu", "lark", "todo", "bitable", "ai-agent", "claude-code", "zcode"],
+  "author": "基于 syskuku/wechat-todo（Syskuku_暮雪逢樱）改造",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/syskuku/wechat-todo.git"
+  }
+}
