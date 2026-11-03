@@ -45,37 +45,75 @@ def _choose_candidate(candidates):
     return None
 
 
-def _auto_detect_db_dir_windows():
-    appdata = os.environ.get("APPDATA", "")
-    config_dir = os.path.join(appdata, "Tencent", "xwechat", "config")
-    if not os.path.isdir(config_dir):
-        return None
-    data_roots = []
-    for ini_file in glob_mod.glob(os.path.join(config_dir, "*.ini")):
+def _read_text_any_encoding(path):
+    """按常见编码读文本（腾讯 ini 实测可能是 UTF-8，也可能是 GBK）。"""
+    for enc in ("utf-8-sig", "gbk"):
         try:
-            content = None
-            for enc in ("utf-8", "gbk"):
-                try:
-                    with open(ini_file, "r", encoding=enc) as f:
-                        content = f.read(1024).strip()
-                    break
-                except UnicodeDecodeError:
-                    continue
-            if not content or any(c in content for c in "\n\r\x00"):
-                continue
-            if os.path.isdir(content):
-                data_roots.append(content)
-        except OSError:
+            with open(path, "r", encoding=enc) as f:
+                return f.read()
+        except (UnicodeDecodeError, OSError):
             continue
+    return None
+
+
+def _existing_dirs_in_ini(path):
+    """从 xwechat 的 *.ini 中挖出所有"确实存在的目录"。
+
+    该文件有多种形态：`Key: D:\\path` 单行、或 `MyDocument:` 换行后跟路径。
+    旧实现把整个文件内容当成一个路径、遇换行就整份丢弃，于是 4.x 微信在多数机器上
+    探测失败（只能手动 --db-dir）。这里改成逐行扫描，两种形态都能命中。
+    """
+    text = _read_text_any_encoding(path)
+    if not text:
+        return []
+    roots = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip().strip('"').strip("'")
+        if not line or "\x00" in line:
+            continue
+        candidates = [line]
+        for sep in (":", "="):
+            if sep in line:
+                candidates.append(line.split(sep, 1)[1].strip().strip('"').strip("'"))
+        for cand in candidates:
+            if cand and os.path.isabs(cand) and os.path.isdir(cand):
+                roots.append(cand)
+    return roots
+
+
+def _db_storage_under(root, seen):
+    """收集 <root>/xwechat_files/*/db_storage，跨 root 去重。"""
+    found = []
+    pattern = os.path.join(root, "xwechat_files", "*", "db_storage")
+    for match in glob_mod.glob(pattern):
+        if not os.path.isdir(match):
+            continue
+        normalized = os.path.normcase(os.path.normpath(match))
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        found.append(match)
+    return found
+
+
+def _auto_detect_db_dir_windows():
     seen = set()
     candidates = []
+
+    # ① 配置 ini 里登记的安装根目录（优先：用户可能把库放在了非默认盘）
+    data_roots = []
+    config_dir = os.path.join(os.environ.get("APPDATA", ""), "Tencent", "xwechat", "config")
+    if os.path.isdir(config_dir):
+        for ini_file in glob_mod.glob(os.path.join(config_dir, "*.ini")):
+            data_roots.extend(_existing_dirs_in_ini(ini_file))
     for root in data_roots:
-        pattern = os.path.join(root, "xwechat_files", "*", "db_storage")
-        for match in glob_mod.glob(pattern):
-            normalized = os.path.normcase(os.path.normpath(match))
-            if os.path.isdir(match) and normalized not in seen:
-                seen.add(normalized)
-                candidates.append(match)
+        candidates.extend(_db_storage_under(root, seen))
+
+    # ② 兜底：微信 4.x 默认落在「文档」下（ini 缺失或未写 MyDocument 时命中）
+    home = os.path.expanduser("~")
+    for root in (os.path.join(home, "Documents"), os.path.join(home, "文档")):
+        candidates.extend(_db_storage_under(root, seen))
+
     return _choose_candidate(candidates)
 
 

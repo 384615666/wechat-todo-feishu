@@ -32,23 +32,31 @@ class DBCache:
                 saved = json.load(f)
         except (json.JSONDecodeError, OSError):
             return
+        if not isinstance(saved, dict):
+            return
         for rel_key, info in saved.items():
-            tmp_path = info["path"]
-            if not os.path.exists(tmp_path):
+            if not isinstance(info, dict):
                 continue
-            rel_path = rel_key.replace('\\', os.sep)
-            db_path = os.path.join(self._db_dir, rel_path)
-            wal_path = db_path + "-wal"
-            try:
-                db_mtime = os.path.getmtime(db_path)
-                wal_mtime = os.path.getmtime(wal_path) if os.path.exists(wal_path) else 0
-            except OSError:
+            tmp_path = info.get("path")
+            if not tmp_path or not os.path.exists(tmp_path):
                 continue
-            if db_mtime == info["db_mt"] and wal_mtime == info["wal_mt"]:
-                self._cache[rel_key] = (db_mtime, wal_mtime, tmp_path)
+            # 只要缓存文件还在就保留映射：mtime 是否过期由 get() 判断并决定是否重新解密。
+            # 旧实现会在这里丢弃 mtime 已变化的条目，而 _save_persistent_cache 又是整体覆盖，
+            # 于是「本次进程没碰到的库」的映射会被永久清掉
+            # （例如只跑 sessions → message_*.db 的条目消失，外部读缓存的一方会静默缺库）。
+            self._cache[rel_key] = (info.get("db_mt", 0), info.get("wal_mt", 0), tmp_path)
 
     def _save_persistent_cache(self):
+        # 与磁盘上已有映射合并，而不是覆盖：多进程各自只解自己用到的库，
+        # 覆盖写会把别的进程写下的条目抹掉。
         data = {}
+        try:
+            with open(self.MTIME_FILE, encoding="utf-8") as f:
+                loaded = json.load(f)
+            if isinstance(loaded, dict):
+                data = loaded
+        except (json.JSONDecodeError, OSError):
+            data = {}
         for rel_key, (db_mt, wal_mt, path) in self._cache.items():
             data[rel_key] = {"db_mt": db_mt, "wal_mt": wal_mt, "path": path}
         try:

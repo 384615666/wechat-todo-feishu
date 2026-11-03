@@ -18,6 +18,7 @@
 | **lark-cli 已安装并登录** | 飞书同步走它。已连好的机器零配置：安装器会自动预检 `lark-cli auth status` |
 | AI 助手工具 | ZCode / Claude Code 等支持 SKILL.md 的工具（skills 会自动装进去） |
 | Node.js ≥ 18 | 安装器运行需要 |
+| **Python 3.11+**（x64 / ARM64 均可） | `wxcli` 由系统 python 驱动；安装器还用它自检并按本机架构补装原生依赖 |
 
 ## 安装
 
@@ -38,6 +39,7 @@ node bin/wechat-todo-feishu.js
 | wechat-cli 工具链 | 开源 [wechat-cli-plus](https://github.com/maomao3334/wechat-cli-plus) 0.2.4（Apache-2.0），含全部 Python 依赖，**无需 pip 安装** | `~/.wechat-cli/` |
 | 解密密钥初始化 | 自动检测并执行 `wxcli init`（保持微信运行即可，密钥从本机微信进程提取，数据不出本机） | `~/.wechat-cli/all_keys.json` |
 | lark-cli 预检 | 自动探测本机 lark-cli 并校验登录态；**不写入、不修改任何凭据与配置** | — |
+| 原生依赖自愈 | 校验 `~/.wechat-cli/deps` 里的原生模块与本机 CPU 架构/Python ABI 是否匹配，不匹配就用 python 补装同版本轮子——**x64 与 ARM64 Windows 都能装** | `~/.wechat-cli/deps/` |
 
 安装器会检测你机器上已有的工具目录（`~/.agents/skills`、`~/.zcode/skills`、`~/.claude/skills`）并装入存在的那些；重复执行 = 覆盖升级。
 
@@ -46,6 +48,7 @@ node bin/wechat-todo-feishu.js
 
 - `WECHAT_TODO_SKILLS_DIR` —— 自定义 skills 安装目录
 - `--skip-init` —— 跳过解密密钥初始化
+- `WECHAT_TODO_DEBUG=1` —— 打印原生依赖自检细节（排查架构/ABI 问题用）
 
 </details>
 
@@ -120,7 +123,7 @@ node bin/wechat-todo-feishu.js
 
 ## 更新与卸载
 
-- **更新**：重跑 `node bin/wechat-todo-feishu.js`（覆盖最新版）；
+- **更新**：重跑 `node bin/wechat-todo-feishu.js`（覆盖最新版）。每次重跑都会重新铺 vendor 里的原生模块，随后自动按本机架构自愈，属预期行为；
 - **卸载**：删除 skills 里的 `wechat-todo-feishu`、`wechat-local` 两个文件夹，以及 `~/.wechat-cli/`（如不再需要微信读取）；
 - **数据安全**：解密密钥、db 配置、聊天数据永不出本机，安装包不包含也不覆盖你的任何凭据；lark-cli 的登录态由它自己管理，本包不读取不搬运。
 
@@ -129,8 +132,11 @@ node bin/wechat-todo-feishu.js
 | 现象 | 处理 |
 |---|---|
 | `wxcli sessions` 报密钥错误/乱码 | 保持微信运行 → `~/.wechat-cli/wxcli.cmd init` |
+| 报 `OSError: Cannot load '_cpuid_c.pyd': [WinError 193]` 或其它原生模块加载失败 | 包内原生依赖与本机架构不符。重跑 `node bin/wechat-todo-feishu.js` 会自动按本机架构补装；也可手动 `python -m pip install --target "%USERPROFILE%\.wechat-cli\deps" pycryptodome==3.23.0 psutil==7.2.2 zstandard==0.25.0` |
 | 报 `zstandard has no attribute ZstdDecompressor` | 把 `~/.wechat-cli/deps/zstandard/*` 复制到 `%LOCALAPPDATA%\Temp\wechat-cli-plus-pydeps\zstandard\` |
+| `wxcli init` 报"未自动检测到微信数据目录" | 4.x 微信数据在 `文档\xwechat_files\<wxid>\db_storage`。探测已支持多行 ini 与默认「文档」兜底；仍失败就显式指定：`~/.wechat-cli/wxcli.cmd init --db-dir "<该路径>"` |
 | 安装器说 lark-cli 未找到 | `lark-cli` 不在 PATH 里；或登录态校验未过——先手动跑 `lark-cli auth status --json --verify` |
+| 安装器说"仅机器人身份就绪 / 用户身份过期" | 机器人身份**不能**顶替用户身份（skill 规定 `--as user`）。执行 `lark-cli auth login`，10 分钟内完成设备码授权即可 |
 | lark-cli 报权限/scope 不足 | 在 lark-cli 侧补授权；skill 会如实上报所缺 scope，不换身份绕过 |
 | 没有飞书任务域 | 该版本 lark-cli 不支持任务域，skill 自动降级为台账单写并在汇报注明 |
 | 微信换了版本/重装 | 重新 `wxcli init`，db_dir 会自动重探测 |
