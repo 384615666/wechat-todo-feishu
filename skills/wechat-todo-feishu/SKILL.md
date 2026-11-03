@@ -204,4 +204,5 @@ python <skill目录>/scripts/triage_incoming.py --hours 24 --json /tmp/triage.js
 | lark-cli 写操作退出码 10（confirmation_required） | 这是高风险确认门禁：向用户展示变更摘要，拿到明确确认后按 --help 追加确认参数，不自动绕过 |
 | 该版本 lark-cli 没有任务域 | 台账单写 + 汇报注明；或与用户约定用日历域挂截止提醒 |
 | 台账日期字段写不进 | 飞书日期字段多要毫秒时间戳或其规定的格式，按字段说明转换，别传字符串日期 |
+| `task +create --due` 报 `cannot parse time` | 只认 ISO 8601：`2026-11-03` 或 `2026-11-03T15:04:05+08:00`；**不认 `date:` 前缀**、也不认相对写法 |
 | 文件被并发改动（Edit 报 modified） | 重 Read 再改；多会话共用工作区 |
