@@ -204,6 +204,5 @@ python ~/.agents/skills/feishu-local/scripts/feishu_export.py --name-match 项�
 ## 许可证
 
 - 本项目（skill 与安装器）以 **MIT** 授权，全文见 [LICENSE](LICENSE)；
-- 内置的 [wechat-cli-plus](https://github.com/maomao3334/wechat-cli-plus) 为 **Apache-2.0**（见 `vendor/wechat-cli/tool/LICENSE`）；
-- `vendor/wechat-cli/deps/` 下的依赖库（pycryptodome / psutil / zstandard / click 等）各随其原许可，许可证文本随包附带；
+- 随仓库分发的第三方组件（wechat-cli-plus、pycryptodome、psutil、zstandard、click）保留各自原许可，清单与许可位置见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；
 - 上游 [syskuku/wechat-todo](https://github.com/syskuku/wechat-todo) 为 MIT 授权。
