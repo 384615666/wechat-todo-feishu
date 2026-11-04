@@ -3,7 +3,8 @@
 /**
  * wechat-todo-feishu 一键安装器
  *   node bin/wechat-todo-feishu.js
- * 干四件事：装 skills（wechat-todo-feishu + wechat-local）→ 铺设 wechat-cli 工具链
+ * 干四件事：装 skills（skills/ 下全部 skill：wechat-todo-feishu + wechat-local + feishu-local）
+ *          → 铺设 wechat-cli 工具链
  *          （并按宿主架构自愈原生依赖）→ 自动提取解密密钥（wxcli init）
  *          → 预检本机 lark-cli（飞书同步走它，用户身份/机器人身份分开判定，不写任何 MCP 配置）
  * 兼容：ZCode / OpenClaw（~/.agents|~/.zcode/skills）、Claude Code（~/.claude/skills）

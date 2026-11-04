@@ -1,7 +1,7 @@
 {
   "name": "wechat-todo-feishu",
-  "version": "1.0.0",
-  "description": "微信消息→待办整理→飞书同步（多维表格台账+飞书任务双写，走本机已登录的 lark-cli，免建应用免 MCP）。基于 syskuku/wechat-todo 改造，含 wechat-cli 工具链与两个 skill，即插即用",
+  "version": "1.1.0",
+  "description": "微信消息→待办整理→飞书同步（多维表格台账+飞书任务双写，走本机已登录的 lark-cli，免建应用免 MCP）。基于 syskuku/wechat-todo 改造，含 wechat-cli 工具链与三个 skill（待办主流程、微信查询、飞书查询），即插即用",
   "bin": {
     "wechat-todo-feishu": "bin/wechat-todo-feishu.js"
   },

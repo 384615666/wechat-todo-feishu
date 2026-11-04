@@ -6,6 +6,8 @@
 
 > 本项目基于 [syskuku/wechat-todo](https://github.com/syskuku/wechat-todo)（原作 Syskuku_暮雪逢樱）改造：把滴答清单同步层替换为飞书，并**改走本机 `lark-cli`**——飞书侧已登录的机器**免建应用、免 OAuth、免写任何 MCP 配置**。微信读取、待办文件、归档等工作流逻辑与原版一致。
 
+当前版本 **v1.1.0**（2026-11-04）· 变更见 [CHANGELOG.md](CHANGELOG.md)
+
 兼容任何支持 **SKILL.md 规范**的 AI 编码/助手工具（ZCode、OpenClaw、Claude Code 等），Windows / macOS / Linux 通用。
 
 ---
@@ -36,6 +38,7 @@ node bin/wechat-todo-feishu.js
 |---|---|---|
 | `wechat-todo-feishu` skill | 待办主工作流（扫描→判定→写文件→双写飞书→归档→报告） | `~/.agents/skills/wechat-todo-feishu/` 等 |
 | `wechat-local` skill | 微信消息查询/导出/检索的全部脚本（`search_all.py` 等） | `~/.agents/skills/wechat-local/` |
+| `feishu-local` skill | 飞书聊天记录查询/导出/检索（`feishu_export.py` 批量导出），走本机已登录的 `lark-cli` 用户身份 | `~/.agents/skills/feishu-local/` |
 | wechat-cli 工具链 | 开源 [wechat-cli-plus](https://github.com/maomao3334/wechat-cli-plus) 0.2.4（Apache-2.0），含全部 Python 依赖，**无需 pip 安装** | `~/.wechat-cli/` |
 | 解密密钥初始化 | 自动检测并执行 `wxcli init`（保持微信运行即可，密钥从本机微信进程提取，数据不出本机） | `~/.wechat-cli/all_keys.json` |
 | lark-cli 预检 | 自动探测本机 lark-cli 并校验登录态；**不写入、不修改任何凭据与配置** | — |
@@ -66,6 +69,42 @@ node bin/wechat-todo-feishu.js
 若目标机器的 lark-cli 版本没有任务域，skill 会自动降级为**台账单写**并在每次汇报中注明（首次引导时也会探查并与你确认）。
 
 首次运行 skill 时，引导会带你完成：验证 lark-cli 登录态 → 探查任务/多维表格能力 → 建「微信待办台账」（7 个字段：任务/截止日期/状态/优先级/来源/任务ID/原文摘录）→ 把表格参数写进工作区 README。
+
+---
+
+## 飞书聊天记录提取（feishu-local）
+
+微信消息在本机解密读；**飞书没有本地可解密库**，消息在服务端，所以走 OpenAPI —— 用本机 `lark-cli` 的**用户身份**（`--as user`），读到的范围 = 你在飞书客户端里能看到的范围（含你加入的群、你的私聊、机器人私聊）。
+
+```bash
+# 我加入了哪些会话（p2p 需要用户身份）
+lark-cli im +chat-list --as user --types=p2p,group --sort=active_time
+
+# 某个会话在时间窗内的消息（必须带冒号的 ISO 8601 时区）
+lark-cli im +chat-messages-list --as user --chat-id oc_xxx \
+  --start 2026-11-01T00:00:00+08:00 --end 2026-11-03T23:59:59+08:00 \
+  --order asc --page-all --page-limit 20
+
+# 跨会话关键词搜索（找"截止/报名/审批/周会"这类）
+lark-cli im +messages-search --as user --query "截止" --page-all --page-limit 5
+```
+
+批量导出（推荐入口，枚举全部会话 → 按窗口拉取 → 每会话 markdown + 结构化 JSON）：
+
+```bash
+python ~/.agents/skills/feishu-local/scripts/feishu_export.py --days 3
+python ~/.agents/skills/feishu-local/scripts/feishu_export.py --hours 24 --download-resources
+python ~/.agents/skills/feishu-local/scripts/feishu_export.py --name-match 湖南 --dry-run
+```
+
+产物：`原始消息/飞书/<日期窗>/<会话名>.md`（时间/发送人/类型/正文/附件）、`_messages.json`（供 triage 读）、`_summary.md`（会话清单与失败项）。
+
+**能力边界（实测）**
+
+- 读得到：群聊、私聊、机器人私聊（审批/任务助手/多维表格助手）、卡片消息（content 已压成 `<card>` 文本）、富文本、附件下载；
+- 读不到：你没加入的群、别人的私聊、企业全量审计数据（那要走管理员导出）；
+- 历史深度：实测可回溯到半年前（2026-03 实测可读），最终受群「新成员可见历史」与租户策略限制；
+- 失败信息写在 **stderr**，`--types` 必须用 `=` 形式，`--page-all` 必须配 `--page-limit`——这些坑都写进了 skill 的 SKILL.md。
 
 ---
 
@@ -124,7 +163,7 @@ node bin/wechat-todo-feishu.js
 ## 更新与卸载
 
 - **更新**：重跑 `node bin/wechat-todo-feishu.js`（覆盖最新版）。每次重跑都会重新铺 vendor 里的原生模块，随后自动按本机架构自愈，属预期行为；
-- **卸载**：删除 skills 里的 `wechat-todo-feishu`、`wechat-local` 两个文件夹，以及 `~/.wechat-cli/`（如不再需要微信读取）；
+- **卸载**：删除 skills 里的 `wechat-todo-feishu`、`wechat-local`、`feishu-local` 三个文件夹，以及 `~/.wechat-cli/`（如不再需要微信读取）；
 - **数据安全**：解密密钥、db 配置、聊天数据永不出本机，安装包不包含也不覆盖你的任何凭据；lark-cli 的登录态由它自己管理，本包不读取不搬运。
 
 ## 常见问题
