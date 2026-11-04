@@ -20,8 +20,8 @@
   # 导出 2026-11-01 ~ 2026-11-03，含图片/文件下载
   python feishu_export.py --start 2026-11-01T00:00:00+08:00 --end 2026-11-03T23:59:59+08:00 --download-resources
 
-  # 只看群、只看名字里带「湖南」的会话
-  python feishu_export.py --hours 48 --types group --name-match 湖南
+  # 只看群、只看名字里带「项目」的会话
+  python feishu_export.py --hours 48 --types group --name-match 项目
 
 无第三方依赖：只用标准库 + 本机 lark-cli。
 """

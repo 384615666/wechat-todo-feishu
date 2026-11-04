@@ -1,12 +1,15 @@
 # wechat-todo-feishu
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/384615666/wechat-todo-feishu)](https://github.com/384615666/wechat-todo-feishu/releases)
+
 > 微信消息 → 待办整理 → **飞书**自动同步（多维表格台账 + 飞书任务双写）—— **一行命令、即插即用**的 AI 助手技能包
 
 每天微信群里的通知、截止日期、文件散落各处？装上它之后，对你的 AI 助手说一句 **「更新待办」**，它就会：全量扫描微信新消息 → 判定哪些是要办的事 → 写成结构化待办文件 → 双写飞书（**多维表格「微信待办台账」**做全量记录与去重索引，**飞书任务**做提醒与勾选）→ 把新收到的文件分类归档 → 给你一份汇总报告。
 
 > 本项目基于 [syskuku/wechat-todo](https://github.com/syskuku/wechat-todo)（原作 Syskuku_暮雪逢樱）改造：把滴答清单同步层替换为飞书，并**改走本机 `lark-cli`**——飞书侧已登录的机器**免建应用、免 OAuth、免写任何 MCP 配置**。微信读取、待办文件、归档等工作流逻辑与原版一致。
 
-当前版本 **v1.1.0**（2026-11-04）· 变更见 [CHANGELOG.md](CHANGELOG.md)
+当前版本 **v1.1.0**（2026-11-04）· [MIT 开源](LICENSE) · 变更见 [CHANGELOG.md](CHANGELOG.md)
 
 兼容任何支持 **SKILL.md 规范**的 AI 编码/助手工具（ZCode、OpenClaw、Claude Code 等），Windows / macOS / Linux 通用。
 
@@ -24,7 +27,7 @@
 
 ## 安装
 
-在目标机器上克隆并安装（私有仓库，需用有权限的 GitHub 账号登录）：
+在目标机器上克隆并安装（公开仓库，直接 clone 即可）：
 
 ```bash
 git clone https://github.com/384615666/wechat-todo-feishu.git
@@ -94,7 +97,7 @@ lark-cli im +messages-search --as user --query "截止" --page-all --page-limit 
 ```bash
 python ~/.agents/skills/feishu-local/scripts/feishu_export.py --days 3
 python ~/.agents/skills/feishu-local/scripts/feishu_export.py --hours 24 --download-resources
-python ~/.agents/skills/feishu-local/scripts/feishu_export.py --name-match 湖南 --dry-run
+python ~/.agents/skills/feishu-local/scripts/feishu_export.py --name-match 项目 --dry-run
 ```
 
 产物：`原始消息/飞书/<日期窗>/<会话名>.md`（时间/发送人/类型/正文/附件）、`_messages.json`（供 triage 读）、`_summary.md`（会话清单与失败项）。
@@ -186,4 +189,21 @@ python ~/.agents/skills/feishu-local/scripts/feishu_export.py --name-match 湖�
 - 微信读取：[wechat-cli-plus](https://github.com/maomao3334/wechat-cli-plus)（Apache-2.0）
 - 飞书接入：本机 `lark-cli`（已登录，免自建应用）
 
-License: skill 与安装器 MIT ｜ 内置 wechat-cli-plus Apache-2.0 ｜ 依赖库各随其原许可
+## 开源与贡献
+
+- 仓库：**<https://github.com/384615666/wechat-todo-feishu>**（公开仓库，MIT），欢迎 Issue / PR；
+- 报问题时请附：操作系统、`node -v`、`python -V`、安装器输出的最后几行；**请勿贴出任何密钥、token、聊天原文或真实会话 ID**；
+- 安全相关问题请走 GitHub 私信或在 Issue 中只描述现象，不要公开贴账号信息。
+
+## 免责声明
+
+- 本项目只读取**你本机、你自己账号**的数据：微信侧本地解密，飞书侧走 OpenAPI 的**用户身份**；不采集、不上传、不共享任何数据；
+- 使用前请自行确认符合微信、飞书服务条款及当地法律法规；**风险与后果由使用者自行承担**；
+- 作者不对数据完整性、及时性作任何担保，也不对因误读消息造成的待办遗漏负责；涉及截止日期等重要事项，请以原始通知为准。
+
+## 许可证
+
+- 本项目（skill 与安装器）以 **MIT** 授权，全文见 [LICENSE](LICENSE)；
+- 内置的 [wechat-cli-plus](https://github.com/maomao3334/wechat-cli-plus) 为 **Apache-2.0**（见 `vendor/wechat-cli/tool/LICENSE`）；
+- `vendor/wechat-cli/deps/` 下的依赖库（pycryptodome / psutil / zstandard / click 等）各随其原许可，许可证文本随包附带；
+- 上游 [syskuku/wechat-todo](https://github.com/syskuku/wechat-todo) 为 MIT 授权。

@@ -46,7 +46,7 @@ lark-cli im +chat-messages-list --as user --chat-id oc_xxx --page-size 20 --down
 
 # 7) 批量导出（推荐入口）
 python <skill目录>/scripts/feishu_export.py --hours 24
-python <skill目录>/scripts/feishu_export.py --days 3 --types=p2p,group --name-match 湖南
+python <skill目录>/scripts/feishu_export.py --days 3 --types=p2p,group --name-match 项目
 python <skill目录>/scripts/feishu_export.py --start 2026-11-01T00:00:00+08:00 --end 2026-11-03T12:00:00+08:00 --download-resources
 ```
 

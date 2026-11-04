@@ -76,9 +76,9 @@ lark-cli skills read lark-im            # 内嵌的飞书 IM 能力说明（含 
 ```bash
 python <skill目录>/scripts/feishu_export.py --hours 24
 python <skill目录>/scripts/feishu_export.py --days 7 --out 原始消息/飞书 --types=p2p,group
-python <skill目录>/scripts/feishu_export.py --chat-id oc_89eb67bef9a8d8de977ebbf8dce4be31 --days 2
+python <skill目录>/scripts/feishu_export.py --chat-id oc_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx --days 2
 python <skill目录>/scripts/feishu_export.py --dry-run            # 只看会扫哪些会话
-python <skill目录>/scripts/feishu_export.py --exclude-bots --name-match 湖南
+python <skill目录>/scripts/feishu_export.py --exclude-bots --name-match 项目
 ```
 
 产物：

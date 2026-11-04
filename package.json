@@ -9,16 +9,22 @@
     "bin/",
     "skills/",
     "vendor/",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=18"
   },
   "keywords": ["skill", "wechat", "feishu", "lark", "todo", "bitable", "ai-agent", "claude-code", "zcode"],
-  "author": "基于 syskuku/wechat-todo（Syskuku_暮雪逢樱）改造",
+  "author": "wechat-todo-feishu contributors（基于 syskuku/wechat-todo 改造）",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/syskuku/wechat-todo.git"
-  }
+    "url": "git+https://github.com/384615666/wechat-todo-feishu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/384615666/wechat-todo-feishu/issues"
+  },
+  "homepage": "https://github.com/384615666/wechat-todo-feishu#readme"
 }
